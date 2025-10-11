@@ -7,15 +7,15 @@ use std::{
 pub type RawVlanId = u16;
 
 /// Types that can be converted to a raw VLAN ID (u16).
-pub trait IntoRawVlanId {
+pub trait AsRawVlanId {
     /// Get the u16 value.
-    fn into_raw_vlan_id(&self) -> RawVlanId;
+    fn as_raw_vlan_id(&self) -> RawVlanId;
 
     /// Convert the type to a big-endian bytes.
     ///
     /// You don't need to implement this method yourself.
-    fn into_be_bytes(&self) -> [u8; 2] {
-        u16::to_be_bytes(self.into_raw_vlan_id())
+    fn as_be_bytes(&self) -> [u8; 2] {
+        u16::to_be_bytes(self.as_raw_vlan_id())
     }
 }
 
@@ -48,21 +48,21 @@ impl Display for NativeVlanId {
     }
 }
 
-impl IntoRawVlanId for NativeVlanId {
-    fn into_raw_vlan_id(&self) -> RawVlanId {
+impl AsRawVlanId for NativeVlanId {
+    fn as_raw_vlan_id(&self) -> RawVlanId {
         Self::VALUE
     }
 }
 
-impl Into<u16> for NativeVlanId {
-    fn into(self) -> u16 {
-        Self::VALUE
+impl From<NativeVlanId> for u16 {
+    fn from(val: NativeVlanId) -> Self {
+        NativeVlanId::VALUE
     }
 }
 
-impl Into<u16> for &NativeVlanId {
-    fn into(self) -> u16 {
-        (*self).into()
+impl From<&NativeVlanId> for u16 {
+    fn from(val: &NativeVlanId) -> Self {
+        (*val).into()
     }
 }
 
@@ -78,15 +78,15 @@ impl TryFrom<u16> for NativeVlanId {
     }
 }
 
-impl<Rhs: IntoRawVlanId> PartialEq<Rhs> for NativeVlanId {
+impl<Rhs: AsRawVlanId> PartialEq<Rhs> for NativeVlanId {
     fn eq(&self, other: &Rhs) -> bool {
-        self.into_raw_vlan_id() == other.into_raw_vlan_id()
+        self.as_raw_vlan_id() == other.as_raw_vlan_id()
     }
 }
 
-impl<Rhs: IntoRawVlanId> PartialOrd<Rhs> for NativeVlanId {
+impl<Rhs: AsRawVlanId> PartialOrd<Rhs> for NativeVlanId {
     fn partial_cmp(&self, other: &Rhs) -> Option<std::cmp::Ordering> {
-        Some(self.into_raw_vlan_id().cmp(&other.into_raw_vlan_id()))
+        Some(self.as_raw_vlan_id().cmp(&other.as_raw_vlan_id()))
     }
 }
 
@@ -159,15 +159,15 @@ impl TryFrom<u16> for VlanId {
     }
 }
 
-impl Into<u16> for VlanId {
-    fn into(self) -> u16 {
-        self.inner.get()
+impl From<VlanId> for u16 {
+    fn from(val: VlanId) -> Self {
+        val.inner.get()
     }
 }
 
-impl Into<u16> for &VlanId {
-    fn into(self) -> u16 {
-        (*self).into()
+impl From<&VlanId> for u16 {
+    fn from(val: &VlanId) -> Self {
+        (*val).into()
     }
 }
 
@@ -177,27 +177,27 @@ impl Debug for VlanId {
     }
 }
 
-impl IntoRawVlanId for VlanId {
-    fn into_raw_vlan_id(&self) -> RawVlanId {
+impl AsRawVlanId for VlanId {
+    fn as_raw_vlan_id(&self) -> RawVlanId {
         self.inner.get()
     }
 }
 
-impl<Rhs: IntoRawVlanId> PartialEq<Rhs> for VlanId {
+impl<Rhs: AsRawVlanId> PartialEq<Rhs> for VlanId {
     fn eq(&self, other: &Rhs) -> bool {
-        self.into_raw_vlan_id() == other.into_raw_vlan_id()
+        self.as_raw_vlan_id() == other.as_raw_vlan_id()
     }
 }
 
-impl<Rhs: IntoRawVlanId> PartialOrd<Rhs> for VlanId {
+impl<Rhs: AsRawVlanId> PartialOrd<Rhs> for VlanId {
     fn partial_cmp(&self, other: &Rhs) -> Option<std::cmp::Ordering> {
-        Some(self.into_raw_vlan_id().cmp(&other.into_raw_vlan_id()))
+        Some(self.as_raw_vlan_id().cmp(&other.as_raw_vlan_id()))
     }
 }
 
 impl Ord for VlanId {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.into_raw_vlan_id().cmp(&other.into_raw_vlan_id())
+        self.as_raw_vlan_id().cmp(&other.as_raw_vlan_id())
     }
 }
 
@@ -276,36 +276,36 @@ impl TryFrom<u16> for MaybeVlanId {
     }
 }
 
-impl Into<u16> for MaybeVlanId {
-    fn into(self) -> u16 {
-        self.as_u16()
+impl From<MaybeVlanId> for u16 {
+    fn from(val: MaybeVlanId) -> Self {
+        val.as_u16()
     }
 }
 
-impl Into<u16> for &MaybeVlanId {
-    fn into(self) -> u16 {
-        self.as_u16()
+impl From<&MaybeVlanId> for u16 {
+    fn from(val: &MaybeVlanId) -> Self {
+        val.as_u16()
     }
 }
 
-impl IntoRawVlanId for MaybeVlanId {
-    fn into_raw_vlan_id(&self) -> RawVlanId {
+impl AsRawVlanId for MaybeVlanId {
+    fn as_raw_vlan_id(&self) -> RawVlanId {
         match *self {
             Self::Native(_) => 0,
-            Self::Tagged(vlan) => vlan.into_raw_vlan_id(),
+            Self::Tagged(vlan) => vlan.as_raw_vlan_id(),
         }
     }
 }
 
-impl<Rhs: IntoRawVlanId> PartialEq<Rhs> for MaybeVlanId {
+impl<Rhs: AsRawVlanId> PartialEq<Rhs> for MaybeVlanId {
     fn eq(&self, other: &Rhs) -> bool {
-        self.into_raw_vlan_id() == other.into_raw_vlan_id()
+        self.as_raw_vlan_id() == other.as_raw_vlan_id()
     }
 }
 
-impl<Rhs: IntoRawVlanId> PartialOrd<Rhs> for MaybeVlanId {
+impl<Rhs: AsRawVlanId> PartialOrd<Rhs> for MaybeVlanId {
     fn partial_cmp(&self, other: &Rhs) -> Option<std::cmp::Ordering> {
-        Some(self.into_raw_vlan_id().cmp(&other.into_raw_vlan_id()))
+        Some(self.as_raw_vlan_id().cmp(&other.as_raw_vlan_id()))
     }
 }
 
@@ -313,7 +313,7 @@ impl Eq for MaybeVlanId {}
 
 impl Ord for MaybeVlanId {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.into_raw_vlan_id().cmp(&other.into_raw_vlan_id())
+        self.as_raw_vlan_id().cmp(&other.as_raw_vlan_id())
     }
 }
 
