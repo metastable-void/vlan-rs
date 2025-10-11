@@ -10,13 +10,6 @@ pub type RawVlanId = u16;
 pub trait AsRawVlanId {
     /// Get the u16 value.
     fn as_raw_vlan_id(&self) -> RawVlanId;
-
-    /// Convert the type to a big-endian bytes.
-    ///
-    /// You don't need to implement this method yourself.
-    fn as_be_bytes(&self) -> [u8; 2] {
-        u16::to_be_bytes(self.as_raw_vlan_id())
-    }
 }
 
 /// The error value that represents an invalid VLAN ID.
@@ -120,6 +113,7 @@ impl VlanId {
     /// Same as MIN (1)
     pub const ONE: Self = Self::MIN;
 
+    /// Try to construct a new VlanId instance.
     pub const fn try_new(vlan: u16) -> Result<Self, InvalidVlanId> {
         if vlan < Self::MIN_VALUE || vlan > Self::MAX_VALUE {
             Err(InvalidVlanId)
@@ -136,10 +130,12 @@ impl VlanId {
         }
     }
 
+    /// Extract the inner type.
     pub const fn inner(&self) -> NonZero<u16> {
         self.inner
     }
 
+    /// Convert to u16.
     pub const fn as_u16(&self) -> u16 {
         self.inner.get()
     }
@@ -244,6 +240,7 @@ impl MaybeVlanId {
         Self::Tagged(vlan)
     }
 
+    /// Convert to u16.
     pub const fn as_u16(&self) -> u16 {
         match *self {
             Self::Tagged(vlan) => vlan.as_u16(),
@@ -251,6 +248,7 @@ impl MaybeVlanId {
         }
     }
 
+    /// Try to construct a MaybeVlanId instance, with `InvalidVlanId` on errors.
     pub const fn try_new(vlan: u16) -> Result<Self, InvalidVlanId> {
         match vlan {
             0 => Ok(Self::NATIVE),
@@ -259,6 +257,35 @@ impl MaybeVlanId {
             },
             _ => Err(InvalidVlanId),
         }
+    }
+
+    /// Convert to big-endian octets.
+    ///
+    /// You are most likely to use this for network applications.
+    pub const fn as_be_bytes(&self) -> [u8; 2] {
+        u16::to_be_bytes(self.as_u16())
+    }
+
+    /// Convert to native-endian octets.
+    pub const fn as_ne_bytes(&self) -> [u8; 2] {
+        u16::to_ne_bytes(self.as_u16())
+    }
+
+    /// Convert to little-endian octets.
+    pub const fn as_le_bytes(&self) -> [u8; 2] {
+        u16::to_le_bytes(self.as_u16())
+    }
+}
+
+impl From<VlanId> for MaybeVlanId {
+    fn from(value: VlanId) -> Self {
+        MaybeVlanId::Tagged(value)
+    }
+}
+
+impl From<NativeVlanId> for MaybeVlanId {
+    fn from(value: NativeVlanId) -> Self {
+        MaybeVlanId::Native(value)
     }
 }
 
