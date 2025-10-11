@@ -22,11 +22,17 @@ impl Display for InvalidVlanId {
     }
 }
 
+impl Default for InvalidVlanId {
+    fn default() -> Self {
+        InvalidVlanId
+    }
+}
+
 impl std::error::Error for InvalidVlanId {}
 
 /// The value that represents the native VLAN.
 ///
-/// It is semantivally zero.
+/// It is semantically zero.
 /// Internally, it consumes no memory.
 #[derive(Debug, Clone, Copy)]
 pub struct NativeVlanId;
@@ -38,6 +44,12 @@ impl NativeVlanId {
 impl Display for NativeVlanId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("0")
+    }
+}
+
+impl Default for NativeVlanId {
+    fn default() -> Self {
+        NativeVlanId
     }
 }
 
@@ -138,6 +150,12 @@ impl VlanId {
     /// Convert to u16.
     pub const fn as_u16(&self) -> u16 {
         self.inner.get()
+    }
+}
+
+impl Default for VlanId {
+    fn default() -> Self {
+        Self::MIN
     }
 }
 
@@ -274,6 +292,12 @@ impl MaybeVlanId {
     /// Convert to little-endian octets.
     pub const fn as_le_bytes(&self) -> [u8; 2] {
         u16::to_le_bytes(self.as_u16())
+    }
+}
+
+impl Default for MaybeVlanId {
+    fn default() -> Self {
+        Self::NATIVE
     }
 }
 
