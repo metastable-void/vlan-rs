@@ -55,7 +55,7 @@ impl AsRawVlanId for NativeVlanId {
 }
 
 impl From<NativeVlanId> for u16 {
-    fn from(val: NativeVlanId) -> Self {
+    fn from(_val: NativeVlanId) -> Self {
         NativeVlanId::VALUE
     }
 }
