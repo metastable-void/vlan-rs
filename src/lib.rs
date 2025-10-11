@@ -425,4 +425,15 @@ mod tests {
 
         assert_eq!(MaybeVlanId::NATIVE, NativeVlanId);
     }
+
+    #[test]
+    fn mem_compat() {
+        let zero: u16 = 0u16;
+        let should_be_zero: u16 = unsafe { std::mem::transmute(MaybeVlanId::NATIVE) };
+        assert_eq!(zero, should_be_zero);
+
+        let a: u16 = 3125u16;
+        let b = MaybeVlanId::Tagged(VlanId::try_new(3125u16).unwrap());
+        assert_eq!(a, unsafe { std::mem::transmute(b) });
+    }
 }
