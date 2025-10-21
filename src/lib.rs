@@ -4,6 +4,9 @@ use std::{
     num::NonZero,
 };
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 pub type RawVlanId = u16;
 
 /// Types that can be converted to a raw VLAN ID (u16).
@@ -108,6 +111,8 @@ impl Hash for NativeVlanId {
 /// Range: 1-4094
 #[derive(Clone, Copy)]
 #[repr(transparent)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "u16", into = "u16"))]
 pub struct VlanId {
     inner: NonZero<u16>,
 }
@@ -229,6 +234,8 @@ impl Hash for VlanId {
 ///
 /// It has the same memory layout as `u16`.
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "u16", into = "u16"))]
 pub enum MaybeVlanId {
     /// Native VLAN value. It is effectively the same as `Option::None`.
     Native(NativeVlanId),
@@ -371,82 +378,6 @@ impl Ord for MaybeVlanId {
 impl Hash for MaybeVlanId {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         state.write_u16(self.into());
-    }
-}
-
-#[cfg(feature = "serde")]
-mod serialization {
-    use super::*;
-    use serde::de::{self, Deserialize, Deserializer, Visitor};
-    use serde::ser::{Serialize, Serializer};
-    use std::fmt;
-
-    struct VlanIdVisitor;
-
-    impl<'de> Visitor<'de> for VlanIdVisitor {
-        type Value = VlanId;
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("Expected a valid tagged VLAN ID")
-        }
-
-        fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            v.try_into().map_err(|e| de::Error::custom(e))
-        }
-    }
-
-    impl<'de> Deserialize<'de> for VlanId {
-        fn deserialize<D>(deserializer: D) -> Result<VlanId, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            deserializer.deserialize_str(VlanIdVisitor)
-        }
-    }
-
-    impl Serialize for VlanId {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
-        {
-            serializer.serialize_u16(self.as_u16())
-        }
-    }
-
-    struct MaybeVlanIdVisitor;
-
-    impl<'de> Visitor<'de> for MaybeVlanIdVisitor {
-        type Value = MaybeVlanId;
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("Expected a valid tagged VLAN ID or zero (native VLAN)")
-        }
-
-        fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            v.try_into().map_err(|e| de::Error::custom(e))
-        }
-    }
-
-    impl<'de> Deserialize<'de> for MaybeVlanId {
-        fn deserialize<D>(deserializer: D) -> Result<MaybeVlanId, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            deserializer.deserialize_str(MaybeVlanIdVisitor)
-        }
-    }
-
-    impl Serialize for MaybeVlanId {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
-        {
-            serializer.serialize_u16(self.as_u16())
-        }
     }
 }
 
